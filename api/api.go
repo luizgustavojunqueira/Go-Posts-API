@@ -1,0 +1,46 @@
+package api
+
+import (
+	"luizg/PostsAPI/api/controllers"
+	"luizg/PostsAPI/api/models"
+	"luizg/PostsAPI/api/services"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+type Api struct {
+	Router *gin.Engine
+	DB     *gorm.DB
+}
+
+func (api *Api) Initialize() {
+	api.Router = gin.Default()
+
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN: "postgresql://postgres:gLInLcWZvwbTSYYjfUzOdGRdjQDdCzFs@junction.proxy.rlwy.net:49094/railway",
+	}), &gorm.Config{})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	api.DB = db
+
+	api.DB.AutoMigrate(&models.User{})
+	api.DB.AutoMigrate(&models.Post{})
+
+	//Controllers
+	userController := &controllers.UserController{UserService: &services.UserService{DB: api.DB}}
+	userController.SetRoutes(api.Router)
+
+	postController := &controllers.PostController{PostService: &services.PostService{DB: api.DB}}
+	postController.SetRoutes(api.Router)
+}
+
+func (api *Api) Run(addr string) {
+	api.Initialize()
+
+	api.Router.Run(addr)
+}
