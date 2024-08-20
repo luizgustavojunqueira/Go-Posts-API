@@ -18,6 +18,7 @@ func (controller *UserController) SetRoutes(router *gin.Engine) {
 	router.POST("/users", controller.CreateUser)
 	router.GET("/users", controller.GetUsers)
 	router.DELETE("/users/:id", controller.DeleteUser)
+	router.PUT("/users", controller.UpdateUser)
 }
 
 // Endpoint to create a new user
@@ -90,4 +91,24 @@ func (controller *UserController) DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": deletedId})
+}
+
+// Endpoint to update a user
+func (controller *UserController) UpdateUser(c *gin.Context) {
+	var updatedUser models.User
+
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updatedUser, err := controller.UserService.Update(updatedUser)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": updatedUser})
+
 }

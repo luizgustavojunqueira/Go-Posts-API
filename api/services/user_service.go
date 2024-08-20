@@ -77,3 +77,14 @@ func (us *UserService) FindByID(id uint) (models.User, error) {
 	// Otherwise, return the user
 	return user, nil
 }
+
+// Function to update a user in the database
+func (us *UserService) Update(user models.User) (models.User, error) {
+	result := us.DB.Save(&user)
+
+	if result.Error != nil {
+		return user, result.Error
+	}
+
+	return user, nil
+}
