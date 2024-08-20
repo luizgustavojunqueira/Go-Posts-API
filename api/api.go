@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 )
 
 type Api struct {
@@ -19,7 +20,7 @@ func (api *Api) Initialize() {
 	api.Router = gin.Default()
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN: "postgresql://postgres:gLInLcWZvwbTSYYjfUzOdGRdjQDdCzFs@junction.proxy.rlwy.net:49094/railway",
+		DSN: os.Getenv("DATABASE_URL"),
 	}), &gorm.Config{})
 
 	if err != nil {
