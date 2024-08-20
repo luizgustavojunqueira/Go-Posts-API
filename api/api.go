@@ -5,7 +5,9 @@ import (
 	"luizg/PostsAPI/api/models"
 	"luizg/PostsAPI/api/services"
 
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
@@ -18,6 +20,14 @@ type Api struct {
 
 func (api *Api) Initialize() {
 	api.Router = gin.Default()
+
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	fmt.Println("DATABASE_URL: ", os.Getenv("DATABASE_URL"))
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: os.Getenv("DATABASE_URL"),
