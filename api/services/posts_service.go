@@ -57,3 +57,14 @@ func (ps *PostService) FindByID(id uint) (models.Post, error) {
 
 	return post, nil
 }
+
+// Function to delete a post in the database
+func (ps *PostService) Delete(post models.Post) (uint, error) {
+	result := ps.DB.Delete(&post)
+
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return post.ID, nil
+}
