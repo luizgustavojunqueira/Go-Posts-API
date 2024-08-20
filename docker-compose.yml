@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres
+    ports:
+      - ${PG_PORT:-5432}:5432
+    environment:
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+      POSTGRES_DB: ${PG_DATABASE:-postgres}
+    volumes:
+      - data:/var/lib/postgresql/data
+
+volumes:
+  data:
