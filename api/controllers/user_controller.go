@@ -6,6 +6,7 @@ import (
 	"luizg/PostsAPI/api/services"
 	"luizg/PostsAPI/utils"
 	"net/http"
+	"strconv"
 )
 
 type UserController struct {
@@ -16,35 +17,31 @@ type UserController struct {
 func (controller *UserController) SetRoutes(router *gin.Engine) {
 	router.POST("/users", controller.CreateUser)
 	router.GET("/users", controller.GetUsers)
+	router.DELETE("/users/:id", controller.DeleteUser)
 }
 
 // Endpoint to create a new user
 func (controller *UserController) CreateUser(c *gin.Context) {
 	var user models.User
 
-	// Parse the request body to the `user` struct
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	// Hash the user password
 	passHash, err := utils.HashPassword(user.Password)
 
-	// If an error occurs, return the error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	user.Password = passHash
 
-	// Save the user in the database
 	id, err := controller.UserService.Save(user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	// Respond with the new user ID
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 
 }
@@ -52,18 +49,38 @@ func (controller *UserController) CreateUser(c *gin.Context) {
 // Endpoint to get all users
 func (controller *UserController) GetUsers(c *gin.Context) {
 
-	// Find all users
 	users, err := controller.UserService.FindAll()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	// Remove the password from the response
 	for i := range users {
 		users[i].Password = ""
 	}
 
-	// Respond with the users
 	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+// Encpoint to delete a user by id
+func (controller *UserController) DeleteUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	user, err := controller.UserService.FindByID(uint(id))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	deletedId, err := controller.UserService.Delete(user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": deletedId})
 }

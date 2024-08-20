@@ -22,6 +22,17 @@ func (us *UserService) Save(user models.User) (uint, error) {
 	return user.ID, nil
 }
 
+// Function to delete a user in the database
+func (us *UserService) Delete(user models.User) (uint, error) {
+	result := us.DB.Delete(&user)
+
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return user.ID, nil
+}
+
 // Function to find a user in the database
 func (us *UserService) Find(user models.User, id uint) error {
 	result := us.DB.Preload("Posts").First(&user, id)
