@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"luizg/PostsAPI/api/models"
 	"luizg/PostsAPI/api/services"
+	"luizg/PostsAPI/utils"
 	"net/http"
 )
 
@@ -23,6 +24,14 @@ func (controller *UserController) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
+	passHash, err := utils.HashPassword(user.Password)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	user.Password = passHash
+
 	id, err := controller.UserService.Save(user)
 
 	if err != nil {
@@ -39,6 +48,10 @@ func (controller *UserController) GetUsers(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	for i := range users {
+		users[i].Password = ""
 	}
 
 	c.JSON(http.StatusOK, gin.H{"users": users})

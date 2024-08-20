@@ -39,8 +39,7 @@ func (api *Api) Initialize() {
 
 	api.DB = db
 
-	api.DB.AutoMigrate(&models.User{})
-	api.DB.AutoMigrate(&models.Post{})
+	api.DB.AutoMigrate(&models.User{}, &models.Post{})
 
 	//Controllers
 	userController := &controllers.UserController{UserService: &services.UserService{DB: api.DB}}
