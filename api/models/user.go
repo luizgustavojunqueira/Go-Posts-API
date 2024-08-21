@@ -14,3 +14,8 @@ type User struct {
 	Password  string    `json:"password,omitempty"`
 	Posts     []Post    `json:"posts" gorm:"constraint:OnDelete:CASCADE"`
 }
+
+type UserLogin struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

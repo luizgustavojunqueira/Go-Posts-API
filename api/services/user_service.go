@@ -88,3 +88,15 @@ func (us *UserService) Update(user models.User) (models.User, error) {
 
 	return user, nil
 }
+
+// Function to find a user by email in the database
+func (us *UserService) FindByEmail(email string) (models.User, error) {
+	var user models.User
+	result := us.DB.Where("email = ?", email).First(&user)
+
+	if result.Error != nil {
+		return models.User{}, result.Error
+	}
+
+	return user, nil
+}
