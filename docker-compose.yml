@@ -7,8 +7,31 @@ services:
       POSTGRES_USER: ${PG_USER:-postgres}
       POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
       POSTGRES_DB: ${PG_DATABASE:-postgres}
+    networks:
+      - default
     volumes:
       - data:/var/lib/postgresql/data
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - default
+    ports:
+      - ${API_PORT:-3000}:3000
+    environment:
+      PG_HOST: db
+      PG_PORT: ${PG_PORT:-5432}
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-postgres}
+      PG_DATABASE: ${PG_DATABASE:-postgres}
+    command: go run cmd/main.go
+    depends_on:
+      - db
+
 volumes:
   data:
+
+networks:
+  default:
