@@ -18,7 +18,7 @@ type UserController struct {
 func (controller *UserController) SetRoutes(router *gin.Engine) {
 	router.POST("/users", controller.CreateUser)
 	router.GET("/users", controller.GetUsers)
-	router.DELETE("/users/:id", controller.DeleteUser)
+	router.DELETE("/users", controller.DeleteUser)
 	router.PUT("/users", controller.UpdateUser)
 	router.POST("/login", controller.Login)
 }
@@ -28,14 +28,14 @@ func (controller *UserController) CreateUser(c *gin.Context) {
 	var user models.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	passHash, err := utils.HashPassword(user.Password)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
 		return
 	}
 
@@ -44,7 +44,7 @@ func (controller *UserController) CreateUser(c *gin.Context) {
 	id, err := controller.UserService.Save(user)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save user"})
 		return
 	}
 
@@ -58,7 +58,7 @@ func (controller *UserController) GetUsers(c *gin.Context) {
 	users, err := controller.UserService.FindAll()
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find users"})
 		return
 	}
 
@@ -71,28 +71,58 @@ func (controller *UserController) GetUsers(c *gin.Context) {
 
 // Encpoint to delete a user by id
 func (controller *UserController) DeleteUser(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var request struct {
+		AccessToken  string `header:"Authorization"`
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindHeader(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing authorizaton token"})
 		return
 	}
 
-	user, err := controller.UserService.FindByID(uint(id))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing refresh token"})
 		return
 	}
 
-	deletedId, err := controller.UserService.Delete(user)
+	request.AccessToken = request.AccessToken[7:]
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userClaims, errAccess := utils.ParseAcessToken(request.AccessToken)
+	refreshTokenClaims, errRefresh := utils.ParseRefreshToken(request.RefreshToken)
+
+	if errAccess != nil || errRefresh != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Could not parse token"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"id": deletedId})
+	if refreshTokenClaims.Valid() != nil {
+		newRefreshToken, err := utils.NewRefreshToken(*refreshTokenClaims)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating refresh token"})
+			return
+		}
+		request.RefreshToken = newRefreshToken
+	}
+
+	if userClaims.StandardClaims.Valid() != nil && refreshTokenClaims.Valid() == nil {
+		newAccessToken, err := utils.NewAcessToken(userClaims)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating access token"})
+			return
+		}
+		request.AccessToken = newAccessToken
+	}
+
+	err := controller.UserService.Delete(userClaims.Email)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"deleted_email": userClaims.Email})
 }
 
 // Endpoint to update a user

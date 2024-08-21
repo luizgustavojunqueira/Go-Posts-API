@@ -22,15 +22,15 @@ func (us *UserService) Save(user models.User) (uint, error) {
 	return user.ID, nil
 }
 
-// Function to delete a user in the database
-func (us *UserService) Delete(user models.User) (uint, error) {
-	result := us.DB.Delete(&user)
+// Function to delete a user by email in the database
+func (us *UserService) Delete(email string) error {
+	result := us.DB.Where("email = ?", email).Delete(&models.User{})
 
 	if result.Error != nil {
-		return 0, result.Error
+		return result.Error
 	}
 
-	return user.ID, nil
+	return nil
 }
 
 // Function to find a user in the database
