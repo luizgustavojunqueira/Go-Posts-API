@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"luizg/PostsAPI/api/middlewares"
 	"luizg/PostsAPI/api/models"
 	"luizg/PostsAPI/api/services"
 	"luizg/PostsAPI/utils"
@@ -18,7 +19,7 @@ type UserController struct {
 func (controller *UserController) SetRoutes(router *gin.Engine) {
 	router.POST("/users", controller.CreateUser)
 	router.GET("/users", controller.GetUsers)
-	router.DELETE("/users", controller.DeleteUser)
+	router.DELETE("/users", middlewares.AuthMiddleware(), controller.DeleteUser)
 	router.PUT("/users", controller.UpdateUser)
 	router.POST("/login", controller.Login)
 }
@@ -72,57 +73,20 @@ func (controller *UserController) GetUsers(c *gin.Context) {
 // Encpoint to delete a user by id
 func (controller *UserController) DeleteUser(c *gin.Context) {
 
-	var request struct {
-		AccessToken  string `header:"Authorization"`
-		RefreshToken string `json:"refresh_token"`
+	userEmail := c.GetString("user_email")
+
+	if userEmail == "" {
+		panic("Something went wrong with the auth middleware")
 	}
 
-	if err := c.ShouldBindHeader(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing authorizaton token"})
-		return
-	}
-
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing refresh token"})
-		return
-	}
-
-	request.AccessToken = request.AccessToken[7:]
-
-	userClaims, errAccess := utils.ParseAcessToken(request.AccessToken)
-	refreshTokenClaims, errRefresh := utils.ParseRefreshToken(request.RefreshToken)
-
-	if errAccess != nil || errRefresh != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Could not parse token"})
-		return
-	}
-
-	if refreshTokenClaims.Valid() != nil {
-		newRefreshToken, err := utils.NewRefreshToken(*refreshTokenClaims)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating refresh token"})
-			return
-		}
-		request.RefreshToken = newRefreshToken
-	}
-
-	if userClaims.StandardClaims.Valid() != nil && refreshTokenClaims.Valid() == nil {
-		newAccessToken, err := utils.NewAcessToken(userClaims)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating access token"})
-			return
-		}
-		request.AccessToken = newAccessToken
-	}
-
-	err := controller.UserService.Delete(userClaims.Email)
+	err := controller.UserService.Delete(userEmail)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete user"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"deleted_email": userClaims.Email})
+	c.JSON(http.StatusOK, gin.H{"deleted_email": userEmail})
 }
 
 // Endpoint to update a user
@@ -168,10 +132,8 @@ func (controller *UserController) Login(c *gin.Context) {
 	}
 
 	accessToken, err := utils.NewAcessToken(&utils.UserClaims{
-		UserId:    user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
+		UserId: user.ID,
+		Email:  user.Email,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
