@@ -79,14 +79,20 @@ func (us *UserService) FindByID(id uint) (models.User, error) {
 }
 
 // Function to update a user in the database
-func (us *UserService) Update(user models.User) (models.User, error) {
-	result := us.DB.Save(&user)
+func (us *UserService) Update(email string, user models.UpdateUser) (models.User, error) {
+	userToUpdate, err := us.FindByEmail(email)
 
-	if result.Error != nil {
-		return user, result.Error
+	if err != nil {
+		return models.User{}, err
 	}
 
-	return user, nil
+	result := us.DB.Model(&userToUpdate).Select("first_name", "last_name").Updates(models.User{FirstName: user.FirstName, LastName: user.LastName})
+
+	if result.Error != nil {
+		return models.User{}, result.Error
+	}
+
+	return userToUpdate, nil
 }
 
 // Function to find a user by email in the database

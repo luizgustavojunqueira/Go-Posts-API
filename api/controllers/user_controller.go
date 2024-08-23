@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"luizg/PostsAPI/api/middlewares"
@@ -20,7 +21,7 @@ func (controller *UserController) SetRoutes(router *gin.Engine) {
 	router.POST("/users", controller.CreateUser)
 	router.GET("/users", controller.GetUsers)
 	router.DELETE("/users", middlewares.AuthMiddleware(), controller.DeleteUser)
-	router.PUT("/users", controller.UpdateUser)
+	router.PUT("/users", middlewares.AuthMiddleware(), controller.UpdateUser)
 	router.POST("/login", controller.Login)
 }
 
@@ -91,19 +92,27 @@ func (controller *UserController) DeleteUser(c *gin.Context) {
 
 // Endpoint to update a user
 func (controller *UserController) UpdateUser(c *gin.Context) {
-	var updatedUser models.User
+	var updateUser models.UpdateUser
 
-	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+	if err := c.ShouldBindJSON(&updateUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedUser, err := controller.UserService.Update(updatedUser)
+	userEmail := c.GetString("user_email")
+
+	if userEmail == "" {
+		panic("Something went wrong with the auth middleware")
+	}
+
+	updatedUser, err := controller.UserService.Update(userEmail, updateUser)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	updatedUser.Password = ""
 
 	c.JSON(http.StatusOK, gin.H{"user": updatedUser})
 
