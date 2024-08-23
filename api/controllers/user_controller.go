@@ -69,20 +69,20 @@ func (controller *UserController) GetUsers(c *gin.Context) {
 // Encpoint to delete a user by id
 func (controller *UserController) DeleteUser(c *gin.Context) {
 
-	userEmail := c.GetString("user_email")
+	userID := c.GetUint("user_id")
 
-	if userEmail == "" {
+	if userID == 0 {
 		panic("Something went wrong with the auth middleware")
 	}
 
-	err := controller.UserService.Delete(userEmail)
+	err := controller.UserService.Delete(userID)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete user"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"deleted_email": userEmail})
+	c.JSON(http.StatusOK, gin.H{"deleted_id": userID})
 }
 
 // Endpoint to update a user
@@ -94,13 +94,13 @@ func (controller *UserController) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	userEmail := c.GetString("user_email")
+	userID := c.GetUint("user_id")
 
-	if userEmail == "" {
+	if userID == 0 {
 		panic("Something went wrong with the auth middleware")
 	}
 
-	updatedUser, err := controller.UserService.Update(userEmail, updateUser)
+	updatedUser, err := controller.UserService.Update(userID, updateUser)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

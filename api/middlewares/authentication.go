@@ -23,15 +23,15 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Remove Bearer from token
 		request.Authorization = strings.TrimPrefix(request.Authorization, "Bearer ")
 
-		userClaims, err := utils.ParseAcessToken(request.Authorization)
+		userClaims, err := utils.ParseToken(request.Authorization)
 
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
 			return
 		}
 
-		// Set user email in context
-		c.Set("user_email", userClaims.Email)
+		// Set user id in context
+		c.Set("user_id", userClaims.UserID)
 		c.Next()
 	}
 }

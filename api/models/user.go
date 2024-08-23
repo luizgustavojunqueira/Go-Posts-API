@@ -44,8 +44,8 @@ func (us *UserService) Save(user User) (uint, error) {
 }
 
 // Function to delete a user by email in the database
-func (us *UserService) Delete(email string) error {
-	result := us.DB.Where("email = ?", email).Delete(&User{})
+func (us *UserService) Delete(id uint) error {
+	result := us.DB.Where("id = ?", id).Delete(&User{})
 
 	if result.Error != nil {
 		return result.Error
@@ -100,8 +100,8 @@ func (us *UserService) FindByID(id uint) (User, error) {
 }
 
 // Function to update a user in the database
-func (us *UserService) Update(email string, user UpdateUser) (User, error) {
-	userToUpdate, err := us.FindByEmail(email)
+func (us *UserService) Update(id uint, user UpdateUser) (User, error) {
+	userToUpdate, err := us.FindByID(id)
 
 	if err != nil {
 		return User{}, err

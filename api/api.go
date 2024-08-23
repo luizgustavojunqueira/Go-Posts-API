@@ -3,9 +3,7 @@ package api
 import (
 	"luizg/PostsAPI/api/controllers"
 	"luizg/PostsAPI/api/models"
-	"luizg/PostsAPI/api/services"
 
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -33,13 +31,13 @@ func (api *Api) Initialize() {
 	api.DB.AutoMigrate(&models.User{}, &models.Post{})
 
 	//Controllers
-	userController := &controllers.UserController{UserService: &services.UserService{DB: api.DB}}
+	userController := &controllers.UserController{UserService: &models.UserService{DB: api.DB}}
 	userController.SetRoutes(api.Router)
 
-	postController := &controllers.PostController{PostService: &services.PostService{DB: api.DB}}
+	postController := &controllers.PostController{PostService: &models.PostService{DB: api.DB}}
 	postController.SetRoutes(api.Router)
 
-	authController := &controllers.AuthController{UserService: &services.UserService{DB: api.DB}}
+	authController := &controllers.AuthController{UserService: &models.UserService{DB: api.DB}}
 	authController.SetRoutes(api.Router)
 }
 

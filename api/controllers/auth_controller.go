@@ -15,7 +15,7 @@ type AuthController struct {
 
 // Initialize Auth routes
 func (controller *AuthController) SetRoutes(router *gin.Engine) {
-	router.POST("/login", controller.login)
+	router.POST("/auth/login", controller.login)
 }
 
 // Endpoint to login
@@ -40,9 +40,8 @@ func (controller *AuthController) login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.NewAcessToken(&utils.UserClaims{
-		UserId: user.ID,
-		Email:  user.Email,
+	accessToken, err := utils.NewToken(&utils.UserClaims{
+		UserID: user.ID,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
@@ -54,16 +53,6 @@ func (controller *AuthController) login(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := utils.NewRefreshToken(jwt.StandardClaims{
-		IssuedAt:  time.Now().Unix(),
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-	})
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
 	c.Header("Authorization", "Bearer "+accessToken)
-	c.JSON(http.StatusOK, gin.H{"refresh_token": refreshToken, "access_token": accessToken})
+	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
 }
