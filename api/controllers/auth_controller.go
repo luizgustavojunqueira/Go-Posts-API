@@ -2,11 +2,9 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"luizg/PostsAPI/api/models"
 	"luizg/PostsAPI/utils"
 	"net/http"
-	"time"
 )
 
 type AuthController struct {
@@ -16,6 +14,7 @@ type AuthController struct {
 // Initialize Auth routes
 func (controller *AuthController) SetRoutes(router *gin.Engine) {
 	router.POST("/auth/login", controller.login)
+	router.POST("/auth/register", controller.register)
 }
 
 // Endpoint to login
@@ -40,13 +39,7 @@ func (controller *AuthController) login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.NewToken(&utils.UserClaims{
-		UserID: user.ID,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
-		},
-	})
+	accessToken, err := utils.CreateTokenWithUserID(user.ID)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -55,4 +48,40 @@ func (controller *AuthController) login(c *gin.Context) {
 
 	c.Header("Authorization", "Bearer "+accessToken)
 	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+}
+
+// Endpoint to regirster a new user
+func (controller *AuthController) register(c *gin.Context) {
+	var user models.User
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	passHash, err := utils.HashPassword(user.Password)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
+		return
+	}
+
+	user.Password = passHash
+
+	user_id, err := controller.UserService.Save(user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save user"})
+		return
+	}
+
+	accessToken, err := utils.CreateTokenWithUserID(user_id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Authorization", "Bearer "+accessToken)
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered"})
 }

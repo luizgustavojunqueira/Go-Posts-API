@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/golang-jwt/jwt"
 	"os"
+	"time"
 )
 
 type UserClaims struct {
@@ -32,4 +33,15 @@ func ParseToken(accessToken string) (*UserClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func CreateTokenWithUserID(userID uint) (string, error) {
+	accessToken, err := NewToken(&UserClaims{
+		UserID: userID,
+		StandardClaims: jwt.StandardClaims{
+			IssuedAt:  time.Now().Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
+		},
+	})
+	return accessToken, err
 }

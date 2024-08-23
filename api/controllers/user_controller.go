@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"luizg/PostsAPI/api/middlewares"
 	"luizg/PostsAPI/api/models"
-	"luizg/PostsAPI/utils"
 	"net/http"
 )
 
@@ -14,39 +13,9 @@ type UserController struct {
 
 // Initialize User routes
 func (controller *UserController) SetRoutes(router *gin.Engine) {
-	router.POST("/users", controller.CreateUser)
 	router.GET("/users", controller.GetUsers)
 	router.DELETE("/users", middlewares.AuthMiddleware(), controller.DeleteUser)
 	router.PUT("/users", middlewares.AuthMiddleware(), controller.UpdateUser)
-}
-
-// Endpoint to create a new user
-func (controller *UserController) CreateUser(c *gin.Context) {
-	var user models.User
-
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
-
-	passHash, err := utils.HashPassword(user.Password)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
-		return
-	}
-
-	user.Password = passHash
-
-	id, err := controller.UserService.Save(user)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save user"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"id": id})
-
 }
 
 // Endpoint to get all users
