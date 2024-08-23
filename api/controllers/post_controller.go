@@ -3,13 +3,12 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"luizg/PostsAPI/api/models"
-	"luizg/PostsAPI/api/services"
 	"net/http"
 	"strconv"
 )
 
 type PostController struct {
-	PostService *services.PostService
+	PostService *models.PostService
 }
 
 func (controller *PostController) SetRoutes(router *gin.Engine) {
