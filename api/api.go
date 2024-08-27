@@ -3,8 +3,11 @@ package api
 import (
 	"luizg/PostsAPI/api/controllers"
 	"luizg/PostsAPI/api/models"
+	"luizg/PostsAPI/docs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"       // swagger embed files
+	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
@@ -30,19 +33,30 @@ func (api *Api) Initialize() {
 
 	api.DB.AutoMigrate(&models.User{}, &models.Post{})
 
+	v1 := api.Router.Group("/api/v1")
+
 	//Controllers
 	userController := &controllers.UserController{UserService: &models.UserService{DB: api.DB}}
-	userController.SetRoutes(api.Router)
+	userController.SetRoutes(v1)
 
 	postController := &controllers.PostController{PostService: &models.PostService{DB: api.DB}}
-	postController.SetRoutes(api.Router)
+	postController.SetRoutes(v1)
 
 	authController := &controllers.AuthController{UserService: &models.UserService{DB: api.DB}}
-	authController.SetRoutes(api.Router)
+	authController.SetRoutes(v1)
+
+	api.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 func (api *Api) Run(addr string) {
 	api.Initialize()
+
+	docs.SwaggerInfo.Title = "Posts API"
+	docs.SwaggerInfo.Description = "A simple API to create posts and users"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost" + addr
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http"}
 
 	api.Router.Run(addr)
 }

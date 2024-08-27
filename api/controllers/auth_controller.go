@@ -13,12 +13,24 @@ type AuthController struct {
 }
 
 // Initialize Auth routes
-func (controller *AuthController) SetRoutes(router *gin.Engine) {
+func (controller *AuthController) SetRoutes(router *gin.RouterGroup) {
 	router.POST("/auth/login", controller.login)
 	router.POST("/auth/register", controller.register)
 }
 
-// Endpoint to login
+// Login the user
+//
+// @Summary Login the user
+// @Description Login the user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param userLogin body models.UserLogin true "User login"
+// @Success 200 {string} string "Logged in"
+// @Failure 400 {string} string "Bad request"
+// @Failure 401 {string} string "Invalid password"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/login [post]
 func (controller *AuthController) login(c *gin.Context) {
 
 	var userLogin models.UserLogin
@@ -51,7 +63,18 @@ func (controller *AuthController) login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
 }
 
-// Endpoint to regirster a new user
+// Register a new user
+//
+// @Summary Register a new user
+// @Description Register a new user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param userRegister body models.RegisterUser true "User register"
+// @Success 201 {string} string "User registered"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/register [post]
 func (controller *AuthController) register(c *gin.Context) {
 
 	var newUser models.RegisterUser

@@ -12,13 +12,21 @@ type UserController struct {
 }
 
 // Initialize User routes
-func (controller *UserController) SetRoutes(router *gin.Engine) {
+func (controller *UserController) SetRoutes(router *gin.RouterGroup) {
 	router.GET("/users", controller.GetUsers)
 	router.DELETE("/users", middlewares.AuthMiddleware(), controller.DeleteUser)
 	router.PUT("/users", middlewares.AuthMiddleware(), controller.UpdateUser)
 }
 
 // Endpoint to get all users
+//
+// @Summary Get all users
+// @Description Get all users
+// @Tags users
+// @Produce json
+// @Success 200 {object} models.User "Users"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users [get]
 func (controller *UserController) GetUsers(c *gin.Context) {
 
 	users, err := controller.UserService.FindAll()
@@ -35,7 +43,15 @@ func (controller *UserController) GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
-// Encpoint to delete a user by id
+// Endpoint to delete a user
+//
+// @Summary Delete a user
+// @Description Delete a user
+// @Tags users
+// @Produce json
+// @Success 200 {string} string "Deleted user"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users [delete]
 func (controller *UserController) DeleteUser(c *gin.Context) {
 
 	userID := c.GetUint("user_id")
@@ -55,6 +71,17 @@ func (controller *UserController) DeleteUser(c *gin.Context) {
 }
 
 // Endpoint to update a user
+//
+// @Summary Update a user
+// @Description Update a user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param userUpdate body models.UpdateUser true "User update"
+// @Success 200 {object} models.User "Updated user"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users [put]
 func (controller *UserController) UpdateUser(c *gin.Context) {
 	var updateUser models.UpdateUser
 

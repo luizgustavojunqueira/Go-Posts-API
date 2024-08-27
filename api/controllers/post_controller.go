@@ -12,13 +12,25 @@ type PostController struct {
 	PostService *models.PostService
 }
 
-func (controller *PostController) SetRoutes(router *gin.Engine) {
+func (controller *PostController) SetRoutes(router *gin.RouterGroup) {
 	router.POST("/posts", middlewares.AuthMiddleware(), controller.CreatePost)
 	router.GET("/posts/all", controller.GetPosts)
 	router.GET("/posts/user", middlewares.AuthMiddleware(), controller.GetUserPosts)
 	router.DELETE("/posts/:id", middlewares.AuthMiddleware(), controller.DeletePost)
 }
 
+// Endpoint to create a post
+//
+// @Summary Create a post
+// @Description Create a post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param post body models.CreatePost true "Post"
+// @Success 201 {string} string "Created post"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /posts [post]
 func (controller *PostController) CreatePost(c *gin.Context) {
 	var postInput models.CreatePost
 
@@ -60,6 +72,15 @@ func (controller *PostController) CreatePost(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
+// Endpoint to get all posts
+//
+// @Summary Get all posts
+// @Description Get all posts
+// @Tags posts
+// @Produce json
+// @Success 200 {object} models.Post "Posts"
+// @Failure 500 {string} string "Internal server error"
+// @Router /posts/all [get]
 func (controller *PostController) GetPosts(c *gin.Context) {
 	posts, err := controller.PostService.FindAll()
 
@@ -71,6 +92,15 @@ func (controller *PostController) GetPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// Endpoint to get all posts from a user
+//
+// @Summary Get all posts from a user
+// @Description Get all posts from a user
+// @Tags posts
+// @Produce json
+// @Success 200 {object} models.Post "Posts"
+// @Failure 500 {string} string "Internal server error"
+// @Router /posts/user [get]
 func (controller *PostController) GetUserPosts(c *gin.Context) {
 	userId := c.GetUint("user_id")
 
@@ -84,6 +114,16 @@ func (controller *PostController) GetUserPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// Endpoint to delete a post
+//
+// @Summary Delete a post
+// @Description Delete a post
+// @Tags posts
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {string} string "Deleted post"
+// @Failure 500 {string} string "Internal server error"
+// @Router /posts/{id} [delete]
 func (controller *PostController) DeletePost(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
