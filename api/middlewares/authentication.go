@@ -17,7 +17,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Get token from header
 		if err := c.ShouldBindHeader(&request); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing authorization header"})
-			return
+			c.Abort()
 		}
 
 		// Remove Bearer from token
@@ -27,7 +27,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
-			return
+			c.Abort()
 		}
 
 		// Set user id in context
