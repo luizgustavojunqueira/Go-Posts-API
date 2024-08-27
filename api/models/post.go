@@ -11,7 +11,12 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
-	UserID    int       `json:"user_id"`
+	UserID    uint      `json:"user_id"`
+}
+
+type CreatePost struct {
+	Title   string `json:"title" binding:"required"`
+	Content string `json:"content" binding:"required"`
 }
 
 type PostService struct {
