@@ -13,7 +13,7 @@ type User struct {
 	LastName  string    `json:"last_name"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password,omitempty"`
-	Posts     []Post    `json:"posts" gorm:"constraint:OnDelete:CASCADE"`
+	Posts     []Post    `json:"posts,omitempty" gorm:"constraint:OnDelete:CASCADE"`
 }
 
 type UserLogin struct {
@@ -79,8 +79,7 @@ func (us *UserService) Find(user User, id uint) error {
 func (us *UserService) FindAll() ([]User, error) {
 	var users []User
 
-	// Preload the user's posts and find all users
-	result := us.DB.Preload("Posts").Find(&users)
+	result := us.DB.Find(&users)
 
 	// If an error occurs while searching for the users, return the error
 	if result.Error != nil {

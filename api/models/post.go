@@ -71,6 +71,19 @@ func (ps *PostService) FindByID(id uint) (Post, error) {
 	return post, nil
 }
 
+// Function to find all posts by user ID in the database
+func (ps *PostService) FindByUserID(userID uint) ([]Post, error) {
+	var posts []Post
+
+	result := ps.DB.Where("user_id = ?", userID).Find(&posts)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return posts, nil
+}
+
 // Function to delete a post in the database
 func (ps *PostService) Delete(post Post) (uint, error) {
 	result := ps.DB.Delete(&post)

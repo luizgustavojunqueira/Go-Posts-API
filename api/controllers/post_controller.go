@@ -14,7 +14,8 @@ type PostController struct {
 
 func (controller *PostController) SetRoutes(router *gin.Engine) {
 	router.POST("/posts", middlewares.AuthMiddleware(), controller.CreatePost)
-	router.GET("/posts", controller.GetPosts)
+	router.GET("/posts/all", controller.GetPosts)
+	router.GET("/posts/user", middlewares.AuthMiddleware(), controller.GetUserPosts)
 	router.DELETE("/posts/:id", middlewares.AuthMiddleware(), controller.DeletePost)
 }
 
@@ -61,6 +62,19 @@ func (controller *PostController) CreatePost(c *gin.Context) {
 
 func (controller *PostController) GetPosts(c *gin.Context) {
 	posts, err := controller.PostService.FindAll()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
+func (controller *PostController) GetUserPosts(c *gin.Context) {
+	userId := c.GetUint("user_id")
+
+	posts, err := controller.PostService.FindByUserID(userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
