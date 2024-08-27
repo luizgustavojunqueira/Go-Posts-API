@@ -5,6 +5,7 @@ import (
 	"luizg/PostsAPI/api/models"
 	"luizg/PostsAPI/utils"
 	"net/http"
+	"net/mail"
 )
 
 type AuthController struct {
@@ -52,21 +53,54 @@ func (controller *AuthController) login(c *gin.Context) {
 
 // Endpoint to regirster a new user
 func (controller *AuthController) register(c *gin.Context) {
-	var user models.User
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+	var newUser models.RegisterUser
+	var errorMessages []string
+
+	if err := c.ShouldBindJSON(&newUser); err != nil {
+		errorMessages = append(errorMessages, err.Error())
+	}
+
+	if newUser.Password != newUser.ConfirmPassword {
+		errorMessages = append(errorMessages, "Passwords do not match")
+	}
+
+	if len(newUser.Password) < 8 {
+		errorMessages = append(errorMessages, "Password must have at least 8 characters")
+	}
+
+	if len(newUser.FirstName) < 2 {
+		errorMessages = append(errorMessages, "First name must have at least 2 characters")
+	}
+
+	if len(newUser.LastName) < 2 {
+		errorMessages = append(errorMessages, "Last name must have at least 2 characters")
+	}
+
+	if _, err := mail.ParseAddress(newUser.Email); err != nil {
+		errorMessages = append(errorMessages, "Invalid email")
+	}
+
+	if len(errorMessages) > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errorMessages})
 		return
 	}
 
-	passHash, err := utils.HashPassword(user.Password)
+	passHash, err := utils.HashPassword(newUser.Password)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
 		return
 	}
 
-	user.Password = passHash
+	newUser.Password = passHash
+
+	user := models.User{
+		FirstName: newUser.FirstName,
+		LastName:  newUser.LastName,
+		Email:     newUser.Email,
+		Password:  newUser.Password,
+	}
 
 	user_id, err := controller.UserService.Save(user)
 
