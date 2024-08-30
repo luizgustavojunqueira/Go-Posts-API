@@ -65,7 +65,7 @@ func (controller *AuthController) login(c *gin.Context) {
 
 	c.Header("Authorization", "Bearer "+accessToken)
 	c.SetSameSite(http.SameSiteNoneMode)
-	c.SetCookie("token", accessToken, 3600, "/", "localhost", true, false)
+	c.SetCookie("token", accessToken, 900, "/", "localhost", true, false)
 	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
 }
 
