@@ -21,6 +21,8 @@ definitions:
         type: string
       updated_at:
         type: string
+      user_full_name:
+        type: string
       user_id:
         type: integer
     type: object
@@ -52,8 +54,6 @@ definitions:
         type: string
       first_name:
         type: string
-      id:
-        type: integer
       last_name:
         type: string
       password:
@@ -64,6 +64,8 @@ definitions:
         type: array
       updated_at:
         type: string
+      user_id:
+        type: integer
     type: object
   models.UserLogin:
     properties:
@@ -211,7 +213,30 @@ paths:
       - posts
   /posts/user:
     get:
+      description: Get all posts from the logged user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts
+          schema:
+            $ref: '#/definitions/models.Post'
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all posts from the logged user
+      tags:
+      - posts
+  /posts/user/{id}:
+    get:
       description: Get all posts from a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -286,6 +311,50 @@ paths:
           schema:
             type: string
       summary: Update a user
+      tags:
+      - users
+  /users/{id}:
+    get:
+      description: Get a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get a user by ID
+      tags:
+      - users
+  /users/current:
+    get:
+      description: Get the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current user
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get the current user
       tags:
       - users
 swagger: "2.0"
