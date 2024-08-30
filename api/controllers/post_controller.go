@@ -16,6 +16,7 @@ func (controller *PostController) SetRoutes(router *gin.RouterGroup) {
 	router.POST("/posts", middlewares.AuthMiddleware(), controller.CreatePost)
 	router.GET("/posts/all", controller.GetPosts)
 	router.GET("/posts/user", middlewares.AuthMiddleware(), controller.GetUserPosts)
+	router.GET("/posts/user/:id", middlewares.AuthMiddleware(), controller.GetPostsByUserID)
 	router.DELETE("/posts/:id", middlewares.AuthMiddleware(), controller.DeletePost)
 }
 
@@ -93,10 +94,10 @@ func (controller *PostController) GetPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
-// Endpoint to get all posts from a user
+// Endpoint to get all posts from the logged user
 //
-// @Summary Get all posts from a user
-// @Description Get all posts from a user
+// @Summary Get all posts from the logged user
+// @Description Get all posts from the logged user
 // @Tags posts
 // @Produce json
 // @Success 200 {object} models.Post "Posts"
@@ -106,6 +107,34 @@ func (controller *PostController) GetUserPosts(c *gin.Context) {
 	userId := c.GetUint("user_id")
 
 	posts, err := controller.PostService.FindByUserID(userId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
+// Endpoint to get all posts from a user
+//
+// @Summary Get all posts from a user
+// @Description Get all posts from a user
+// @Tags posts
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} models.Post "Posts"
+// @Failure 500 {string} string "Internal server error"
+// @Router /posts/user/{id} [get]
+func (controller *PostController) GetPostsByUserID(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	posts, err := controller.PostService.FindByUserID(uint(userId))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
