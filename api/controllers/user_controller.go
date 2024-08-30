@@ -17,8 +17,37 @@ type UserController struct {
 func (controller *UserController) SetRoutes(router *gin.RouterGroup) {
 	router.GET("/users", controller.GetUsers)
 	router.GET("/users/:id", middlewares.AuthMiddleware(), controller.GetUser)
+	router.GET("/users/me", middlewares.AuthMiddleware(), controller.GetCurrentUser)
 	router.DELETE("/users", middlewares.AuthMiddleware(), controller.DeleteUser)
 	router.PUT("/users", middlewares.AuthMiddleware(), controller.UpdateUser)
+}
+
+// Endpoint to get the current user
+//
+// @Summary Get the current user
+// @Description Get the current user
+// @Tags users
+// @Produce json
+// @Success 200 {object} models.User "Current user"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users/current [get]
+func (controller *UserController) GetCurrentUser(c *gin.Context) {
+	userID := c.GetUint("user_id")
+
+	if userID == 0 {
+		panic("Something went wrong with the auth middleware")
+	}
+
+	user, err := controller.UserService.FindByID(userID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find user"})
+		return
+	}
+
+	user.Password = ""
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
 // Endpoint to get a user by ID
