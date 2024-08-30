@@ -5,6 +5,7 @@ import (
 	"luizg/PostsAPI/api/models"
 	"luizg/PostsAPI/docs"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
@@ -32,6 +33,13 @@ func (api *Api) Initialize() {
 	api.DB = db
 
 	api.DB.AutoMigrate(&models.User{}, &models.Post{})
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:5173"}
+	config.AllowCredentials = true
+	config.AllowMethods = []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	api.Router.Use(cors.New(config))
 
 	v1 := api.Router.Group("/api/v1")
 
