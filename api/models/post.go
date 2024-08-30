@@ -6,12 +6,13 @@ import (
 )
 
 type Post struct {
-	ID        uint      `gorm:"primaryKey" json:"post_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	UserID    uint      `json:"user_id"`
+	ID           uint      `gorm:"primaryKey" json:"post_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	UserID       uint      `json:"user_id"`
+	UserFullName string    `json:"user_full_name"`
 }
 
 type CreatePost struct {

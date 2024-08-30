@@ -57,9 +57,10 @@ func (controller *PostController) CreatePost(c *gin.Context) {
 	}
 
 	newPost := models.Post{
-		Title:   postInput.Title,
-		Content: postInput.Content,
-		UserID:  userId,
+		Title:        postInput.Title,
+		Content:      postInput.Content,
+		UserID:       userId,
+		UserFullName: c.GetString("user_full_name"),
 	}
 
 	id, err := controller.PostService.Save(newPost)

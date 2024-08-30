@@ -52,15 +52,21 @@ func (controller *AuthController) login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.CreateTokenWithUserID(user.ID)
+	userFullName := user.FirstName + " " + user.LastName
+
+	accessToken, err := utils.CreateTokenWithUserID(user.ID, userFullName)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	user.Password = ""
+
 	c.Header("Authorization", "Bearer "+accessToken)
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie("token", accessToken, 3600, "/", "localhost", true, false)
+	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
 }
 
 // Register a new user
@@ -132,13 +138,17 @@ func (controller *AuthController) register(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.CreateTokenWithUserID(user_id)
+	userFullName := user.FirstName + " " + user.LastName
+
+	accessToken, err := utils.CreateTokenWithUserID(user_id, userFullName)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	user.Password = ""
+
 	c.Header("Authorization", "Bearer "+accessToken)
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered"})
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered", "user": user})
 }

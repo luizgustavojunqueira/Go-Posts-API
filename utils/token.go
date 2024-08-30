@@ -7,7 +7,8 @@ import (
 )
 
 type UserClaims struct {
-	UserID uint `json:"user_id"`
+	UserID       uint   `json:"user_id"`
+	UserFullName string `json:"user_full_name"`
 	jwt.StandardClaims
 }
 
@@ -35,9 +36,10 @@ func ParseToken(accessToken string) (*UserClaims, error) {
 	return claims, nil
 }
 
-func CreateTokenWithUserID(userID uint) (string, error) {
+func CreateTokenWithUserID(userID uint, user_full_name string) (string, error) {
 	accessToken, err := NewToken(&UserClaims{
-		UserID: userID,
+		UserID:       userID,
+		UserFullName: user_full_name,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
