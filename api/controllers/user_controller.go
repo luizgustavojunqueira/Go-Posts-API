@@ -1,10 +1,12 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"luizg/PostsAPI/api/middlewares"
 	"luizg/PostsAPI/api/models"
 	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
@@ -14,8 +16,42 @@ type UserController struct {
 // Initialize User routes
 func (controller *UserController) SetRoutes(router *gin.RouterGroup) {
 	router.GET("/users", controller.GetUsers)
+	router.GET("/users/:id", middlewares.AuthMiddleware(), controller.GetUser)
 	router.DELETE("/users", middlewares.AuthMiddleware(), controller.DeleteUser)
 	router.PUT("/users", middlewares.AuthMiddleware(), controller.UpdateUser)
+}
+
+// Endpoint to get a user by ID
+//
+// @Summary Get a user by ID
+// @Description Get a user by ID
+// @Tags users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} models.User "User"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users/{id} [get]
+func (controller *UserController) GetUser(c *gin.Context) {
+	userIDInt, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	userID := uint(userIDInt)
+
+	user, err := controller.UserService.FindByID(userID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find user"})
+		return
+	}
+
+	user.Password = ""
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
 // Endpoint to get all users
