@@ -32,7 +32,11 @@ func (api *Api) Initialize() {
 
 	api.DB = db
 
-	api.DB.AutoMigrate(&models.User{}, &models.Post{})
+	errMigrate := api.DB.AutoMigrate(&models.User{}, &models.Post{})
+
+	if errMigrate != nil {
+		panic("Failed to migrate database")
+	}
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:5173"}
@@ -66,5 +70,9 @@ func (api *Api) Run(addr string) {
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Schemes = []string{"http"}
 
-	api.Router.Run(addr)
+	err := api.Router.Run(addr)
+
+	if err != nil {
+		panic("Failed to run server")
+	}
 }
