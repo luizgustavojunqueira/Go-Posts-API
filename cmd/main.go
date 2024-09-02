@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"luizg/PostsAPI/api"
+	"luizg/PostsAPI/cmd/api"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {

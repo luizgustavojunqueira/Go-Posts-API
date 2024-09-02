@@ -1,10 +1,11 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
-	"luizg/PostsAPI/utils"
+	"luizg/PostsAPI/internal/utils"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Middleware to authenticate the user

@@ -1,17 +1,18 @@
 package api
 
 import (
-	"luizg/PostsAPI/api/controllers"
-	"luizg/PostsAPI/api/models"
+	"luizg/PostsAPI/cmd/api/handlers"
 	"luizg/PostsAPI/docs"
+	"luizg/PostsAPI/internal/service"
+
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"       // swagger embed files
-	"github.com/swaggo/gin-swagger" // gin-swagger middleware
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
 )
 
 type Api struct {
@@ -32,7 +33,7 @@ func (api *Api) Initialize() {
 
 	api.DB = db
 
-	errMigrate := api.DB.AutoMigrate(&models.User{}, &models.Post{})
+	errMigrate := api.DB.AutoMigrate(&service.User{}, &service.Post{})
 
 	if errMigrate != nil {
 		panic("Failed to migrate database")
@@ -48,13 +49,13 @@ func (api *Api) Initialize() {
 	v1 := api.Router.Group("/api/v1")
 
 	//Controllers
-	userController := &controllers.UserController{UserService: &models.UserService{DB: api.DB}}
+	userController := &handlers.UserController{UserService: &service.UserService{DB: api.DB}}
 	userController.SetRoutes(v1)
 
-	postController := &controllers.PostController{PostService: &models.PostService{DB: api.DB}}
+	postController := &handlers.PostController{PostService: &service.PostService{DB: api.DB}}
 	postController.SetRoutes(v1)
 
-	authController := &controllers.AuthController{UserService: &models.UserService{DB: api.DB}}
+	authController := &handlers.AuthController{UserService: &service.UserService{DB: api.DB}}
 	authController.SetRoutes(v1)
 
 	api.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

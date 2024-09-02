@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/golang-jwt/jwt"
 	"os"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 type UserClaims struct {

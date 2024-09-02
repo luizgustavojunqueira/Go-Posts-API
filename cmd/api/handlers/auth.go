@@ -1,15 +1,16 @@
-package controllers
+package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"luizg/PostsAPI/api/models"
-	"luizg/PostsAPI/utils"
+	"luizg/PostsAPI/internal/service"
+	"luizg/PostsAPI/internal/utils"
 	"net/http"
 	"net/mail"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	UserService *models.UserService
+	UserService *service.UserService
 }
 
 // Initialize Auth routes
@@ -25,7 +26,7 @@ func (controller *AuthController) SetRoutes(router *gin.RouterGroup) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param userLogin body models.UserLogin true "User login"
+// @Param userLogin body service.UserLogin true "User login"
 // @Success 200 {string} string "Logged in"
 // @Failure 400 {string} string "Bad request"
 // @Failure 401 {string} string "Invalid password"
@@ -33,7 +34,7 @@ func (controller *AuthController) SetRoutes(router *gin.RouterGroup) {
 // @Router /auth/login [post]
 func (controller *AuthController) login(c *gin.Context) {
 
-	var userLogin models.UserLogin
+	var userLogin service.UserLogin
 
 	if err := c.ShouldBindJSON(&userLogin); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -76,14 +77,14 @@ func (controller *AuthController) login(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param userRegister body models.RegisterUser true "User register"
+// @Param userRegister body service.RegisterUser true "User register"
 // @Success 201 {string} string "User registered"
 // @Failure 400 {string} string "Bad request"
 // @Failure 500 {string} string "Internal server error"
 // @Router /auth/register [post]
 func (controller *AuthController) register(c *gin.Context) {
 
-	var newUser models.RegisterUser
+	var newUser service.RegisterUser
 	var errorMessages []string
 
 	if err := c.ShouldBindJSON(&newUser); err != nil {
@@ -124,7 +125,7 @@ func (controller *AuthController) register(c *gin.Context) {
 
 	newUser.Password = passHash
 
-	user := models.User{
+	user := service.User{
 		FirstName: newUser.FirstName,
 		LastName:  newUser.LastName,
 		Email:     newUser.Email,

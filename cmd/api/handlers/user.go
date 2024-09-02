@@ -1,8 +1,8 @@
-package controllers
+package handlers
 
 import (
-	"luizg/PostsAPI/api/middlewares"
-	"luizg/PostsAPI/api/models"
+	"luizg/PostsAPI/cmd/api/middlewares"
+	"luizg/PostsAPI/internal/service"
 	"net/http"
 	"strconv"
 
@@ -10,7 +10,7 @@ import (
 )
 
 type UserController struct {
-	UserService *models.UserService
+	UserService *service.UserService
 }
 
 // Initialize User routes
@@ -28,7 +28,7 @@ func (controller *UserController) SetRoutes(router *gin.RouterGroup) {
 // @Description Get the current user
 // @Tags users
 // @Produce json
-// @Success 200 {object} models.User "Current user"
+// @Success 200 {object} service.User "Current user"
 // @Failure 500 {string} string "Internal server error"
 // @Router /users/current [get]
 func (controller *UserController) GetCurrentUser(c *gin.Context) {
@@ -57,7 +57,7 @@ func (controller *UserController) GetCurrentUser(c *gin.Context) {
 // @Tags users
 // @Produce json
 // @Param id path int true "User ID"
-// @Success 200 {object} models.User "User"
+// @Success 200 {object} service.User "User"
 // @Failure 400 {string} string "Bad request"
 // @Failure 500 {string} string "Internal server error"
 // @Router /users/{id} [get]
@@ -89,7 +89,7 @@ func (controller *UserController) GetUser(c *gin.Context) {
 // @Description Get all users
 // @Tags users
 // @Produce json
-// @Success 200 {object} models.User "Users"
+// @Success 200 {object} service.User "Users"
 // @Failure 500 {string} string "Internal server error"
 // @Router /users [get]
 func (controller *UserController) GetUsers(c *gin.Context) {
@@ -142,13 +142,13 @@ func (controller *UserController) DeleteUser(c *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param userUpdate body models.UpdateUser true "User update"
-// @Success 200 {object} models.User "Updated user"
+// @Param userUpdate body service.UpdateUser true "User update"
+// @Success 200 {object} service.User "Updated user"
 // @Failure 400 {string} string "Bad request"
 // @Failure 500 {string} string "Internal server error"
 // @Router /users [put]
 func (controller *UserController) UpdateUser(c *gin.Context) {
-	var updateUser models.UpdateUser
+	var updateUser service.UpdateUser
 
 	if err := c.ShouldBindJSON(&updateUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

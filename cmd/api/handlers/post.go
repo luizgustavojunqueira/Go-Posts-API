@@ -1,15 +1,16 @@
-package controllers
+package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"luizg/PostsAPI/api/middlewares"
-	"luizg/PostsAPI/api/models"
+	"luizg/PostsAPI/cmd/api/middlewares"
+	"luizg/PostsAPI/internal/service"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type PostController struct {
-	PostService *models.PostService
+	PostService *service.PostService
 }
 
 func (controller *PostController) SetRoutes(router *gin.RouterGroup) {
@@ -27,13 +28,13 @@ func (controller *PostController) SetRoutes(router *gin.RouterGroup) {
 // @Tags posts
 // @Accept json
 // @Produce json
-// @Param post body models.CreatePost true "Post"
+// @Param post body service.CreatePost true "Post"
 // @Success 201 {string} string "Created post"
 // @Failure 400 {string} string "Bad request"
 // @Failure 500 {string} string "Internal server error"
 // @Router /posts [post]
 func (controller *PostController) CreatePost(c *gin.Context) {
-	var postInput models.CreatePost
+	var postInput service.CreatePost
 
 	if err := c.ShouldBindJSON(&postInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -57,7 +58,7 @@ func (controller *PostController) CreatePost(c *gin.Context) {
 		return
 	}
 
-	newPost := models.Post{
+	newPost := service.Post{
 		Title:        postInput.Title,
 		Content:      postInput.Content,
 		UserID:       userId,
@@ -80,7 +81,7 @@ func (controller *PostController) CreatePost(c *gin.Context) {
 // @Description Get all posts
 // @Tags posts
 // @Produce json
-// @Success 200 {object} models.Post "Posts"
+// @Success 200 {object} service.Post "Posts"
 // @Failure 500 {string} string "Internal server error"
 // @Router /posts/all [get]
 func (controller *PostController) GetPosts(c *gin.Context) {
@@ -100,7 +101,7 @@ func (controller *PostController) GetPosts(c *gin.Context) {
 // @Description Get all posts from the logged user
 // @Tags posts
 // @Produce json
-// @Success 200 {object} models.Post "Posts"
+// @Success 200 {object} service.Post "Posts"
 // @Failure 500 {string} string "Internal server error"
 // @Router /posts/user [get]
 func (controller *PostController) GetUserPosts(c *gin.Context) {
@@ -123,7 +124,7 @@ func (controller *PostController) GetUserPosts(c *gin.Context) {
 // @Tags posts
 // @Produce json
 // @Param id path int true "User ID"
-// @Success 200 {object} models.Post "Posts"
+// @Success 200 {object} service.Post "Posts"
 // @Failure 500 {string} string "Internal server error"
 // @Router /posts/user/{id} [get]
 func (controller *PostController) GetPostsByUserID(c *gin.Context) {
